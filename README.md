@@ -1,1 +1,3 @@
-# My personal website
+# Azwar Tamim's Opinions on Things
+
+### Generative AIs
