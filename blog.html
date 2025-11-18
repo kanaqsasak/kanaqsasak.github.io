@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shark Globe Exploration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(120deg, #f8ffae 0%, #43c6ac 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: rgba(255,255,255,0.85);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(44, 62, 80, 0.2);
+      padding: 2.5rem 2rem;
+      max-width: 600px;
+      text-align: center;
+    }
+    h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.2rem;
+      color: #2d3e50;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: #34495e;
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+    #globe {
+      width: 100%;
+      height: 400px;
+      margin: 0 auto 1.5rem auto;
+      display: block;
+    }
+    .credit {
+      font-size: 0.9rem;
+      color: #2d3e50;
+      opacity: 0.7;
+      margin-top: 2rem;
+    }
+  </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/d3-geo-projection@4"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Shark Globe Exploration</h1>
+    <p>Explore a 3D globe showing locations where sharks reside around the world.</p>
+    <svg id="globe"></svg>
+    <div class="credit">Globe visualization powered by D3.js</div>
+  </div>
+  <script>
+    const width = 500, height = 400;
+    const svg = d3.select('#globe')
+      .attr('width', width)
+      .attr('height', height);
+
+    const projection = d3.geoOrthographic()
+      .scale(180)
+      .translate([width / 2, height / 2])
+      .clipAngle(90);
+    const path = d3.geoPath().projection(projection);
+
+    // Draw the sphere
+    svg.append('path')
+      .datum({type: 'Sphere'})
+      .attr('d', path)
+      .attr('fill', '#b3e6ff')
+      .attr('stroke', '#2d3e50')
+      .attr('stroke-width', 1.5);
+
+    // Load world map and shark locations
+    Promise.all([
+      d3.json('https://unpkg.com/world-atlas@2.0.2/world/110m.json'),
+      // Example shark locations: [longitude, latitude]
+      Promise.resolve([
+        [-80, 26],   // Florida
+        [153, -27],  // Australia
+        [32, -29],   // South Africa
+        [-122, 37],  // California
+        [139, 35],   // Japan
+        [55, 25],    // Indian Ocean
+        [-70, -33],  // Chile
+        [115, -8],   // Indonesia
+        [34, -1],    // Kenya
+        [174, -36]   // New Zealand
+      ])
+    ]).then(([world, sharkLocations]) => {
+      const land = topojson.feature(world, world.objects.land);
+      svg.append('path')
+        .datum(land)
+        .attr('d', path)
+        .attr('fill', '#43c6ac')
+        .attr('stroke', '#2d3e50')
+        .attr('stroke-width', 0.5);
+
+      // Draw shark locations
+      svg.selectAll('circle')
+        .data(sharkLocations)
+        .enter()
+        .append('circle')
+        .attr('cx', d => projection(d)[0])
+        .attr('cy', d => projection(d)[1])
+        .attr('r', 6)
+        .attr('fill', '#e74c3c')
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 2)
+        .attr('opacity', 0.85);
+    });
+  </script>
+</body>
+</html>
